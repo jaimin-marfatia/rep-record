@@ -145,19 +145,10 @@
   }
 }
 
-@utility font-display {
-  font-family: var(--font-display);
-  letter-spacing: 0.01em;
-}
-
 @utility shadow-glow {
   box-shadow: var(--glow-primary);
 }
 
 @utility bg-hero {
   background-image: var(--gradient-hero);
-}
-
-@utility tabular {
-  font-variant-numeric: tabular-nums;
 }
