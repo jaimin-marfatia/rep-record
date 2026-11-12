@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { format, parseISO, subWeeks } from "date-fns";
 import {
   Bar,
@@ -47,7 +47,7 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
-export function Panel({ title, subtitle, children, className }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
+export function Panel({ title, subtitle, children, className }: { title: string; subtitle?: string; children: ReactNode; className?: string }) {
   return (
     <section className={cn("rounded-2xl border border-border bg-card p-4 sm:p-5", className)}>
       <div className="mb-4">
