@@ -14,87 +14,13 @@ export type Database = {
   }
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          display_name: string | null
-          id: string
-          share_enabled: boolean
-          share_token: string
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id: string
-          share_enabled?: boolean
-          share_token?: string
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          display_name?: string | null
-          id?: string
-          share_enabled?: boolean
-          share_token?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      workout_sets: {
-        Row: {
-          created_at: string
-          id: string
-          muscle: string
-          performed_at: string
-          reps: number
-          user_id: string
-          weight: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          muscle: string
-          performed_at?: string
-          reps: number
-          user_id?: string
-          weight: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          muscle?: string
-          performed_at?: string
-          reps?: number
-          user_id?: string
-          weight?: number
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_shared_profile: {
-        Args: { _token: string }
-        Returns: {
-          avatar_url: string
-          display_name: string
-        }[]
-      }
-      get_shared_sets: {
-        Args: { _token: string }
-        Returns: {
-          muscle: string
-          performed_at: string
-          reps: number
-          weight: number
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
