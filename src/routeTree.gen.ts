@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedLogRouteImport } from './routes/_authenticated/log'
 import { Route as AuthenticatedProgressRouteImport } from './routes/_authenticated/progress'
+import { Route as AuthenticatedShareRouteImport } from './routes/_authenticated/share'
+import { Route as STokenRouteImport } from './routes/s.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +41,32 @@ const AuthenticatedProgressRoute = AuthenticatedProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedShareRoute = AuthenticatedShareRouteImport.update({
+  id: '/share',
+  path: '/share',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const STokenRoute = STokenRouteImport.update({
+  id: '/s/$token',
+  path: '/s/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/log': typeof AuthenticatedLogRoute
   '/progress': typeof AuthenticatedProgressRoute
+  '/share': typeof AuthenticatedShareRoute
+  '/s/$token': typeof STokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/log': typeof AuthenticatedLogRoute
   '/progress': typeof AuthenticatedProgressRoute
+  '/share': typeof AuthenticatedShareRoute
+  '/s/$token': typeof STokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +75,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/log': typeof AuthenticatedLogRoute
   '/_authenticated/progress': typeof AuthenticatedProgressRoute
+  '/_authenticated/share': typeof AuthenticatedShareRoute
+  '/s/$token': typeof STokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/log' | '/progress'
+  fullPaths: '/' | '/auth' | '/log' | '/progress' | '/share' | '/s/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/log' | '/progress'
+  to: '/' | '/auth' | '/log' | '/progress' | '/share' | '/s/$token'
   id:
     | '__root__'
     | '/'
@@ -72,12 +90,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/log'
     | '/_authenticated/progress'
+    | '/_authenticated/share'
+    | '/s/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  STokenRoute: typeof STokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,17 +138,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/share': {
+      id: '/_authenticated/share'
+      path: '/share'
+      fullPath: '/share'
+      preLoaderRoute: typeof AuthenticatedShareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/s/$token': {
+      id: '/s/$token'
+      path: '/s/$token'
+      fullPath: '/s/$token'
+      preLoaderRoute: typeof STokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedLogRoute: typeof AuthenticatedLogRoute
   AuthenticatedProgressRoute: typeof AuthenticatedProgressRoute
+  AuthenticatedShareRoute: typeof AuthenticatedShareRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLogRoute: AuthenticatedLogRoute,
   AuthenticatedProgressRoute: AuthenticatedProgressRoute,
+  AuthenticatedShareRoute: AuthenticatedShareRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -137,6 +174,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  STokenRoute: STokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
