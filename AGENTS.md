@@ -28,3 +28,10 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- Workout math (presets, volume, PRs, splits, streaks) lives in `src/lib/workout.ts` as pure functions with tests in `src/test/workout.test.ts` — keeps rules testable and shared by app + public page.
+- Signed-in data is read/written from the browser client under RLS (`src/lib/workout-queries.ts`); pages under `_authenticated` load via `ensureQueryData` + `useSuspenseQuery`.
+- Public sharing goes only through security-definer RPCs `get_shared_profile` / `get_shared_sets` (gated by `profiles.share_enabled`), called from a publishable-key server function — tables themselves have no anon access.
+- One auth listener lives in `src/components/auth-provider.tsx`; don't add per-page `onAuthStateChange` subscribers.
