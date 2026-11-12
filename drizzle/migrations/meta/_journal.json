@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "postgresql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1794442987178,
+      "tag": "0000_workout_tracker_schema",
+      "breakpoints": true
+    }
+  ]
 }
