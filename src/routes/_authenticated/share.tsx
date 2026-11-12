@@ -74,7 +74,7 @@ function SharePage() {
       <p className="mt-1 text-muted-foreground">Anyone with the link can view your charts and summary. Only you can log or edit.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <section className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -151,7 +151,7 @@ function SharePage() {
           </section>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <div className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Summary card preview</div>
           <SummaryCard name={displayName} sets={sets} />
         </div>

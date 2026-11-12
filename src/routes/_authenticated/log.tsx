@@ -94,7 +94,7 @@ function LogPage() {
     <AppShell>
       <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
         {/* Logger */}
-        <section className="rounded-3xl border border-border bg-card p-4 sm:p-6">
+        <section className="min-w-0 rounded-3xl border border-border bg-card p-4 sm:p-6">
           <h1 className="font-display text-3xl font-black uppercase">Log a set</h1>
 
           <Label>Muscle</Label>
@@ -223,7 +223,7 @@ function LogPage() {
         </section>
 
         {/* Today's session */}
-        <section>
+        <section className="min-w-0">
           <div className="flex items-end justify-between">
             <div>
               <h2 className="font-display text-3xl font-black uppercase">Today's session</h2>

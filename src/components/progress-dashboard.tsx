@@ -212,7 +212,7 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Flame className="h-3.5 w-3.5 text-primary" /> Current streak
               </div>
-              <div className="font-display text-2xl font-black">{summary.currentStreak} days</div>
+              <div className="font-display text-2xl font-black">{summary.currentStreak} {summary.currentStreak === 1 ? "day" : "days"}</div>
             </div>
           </div>
         </Panel>
