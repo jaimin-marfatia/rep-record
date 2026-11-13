@@ -3,7 +3,6 @@ import { Lock } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { ProgressDashboard } from "@/components/progress-dashboard";
 import { SummaryCard } from "@/components/summary-card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSharedWorkout } from "@/lib/share.functions";
 
@@ -21,7 +20,7 @@ export const Route = createFileRoute("/s/$token")({
         ],
       };
     }
-    const name = loaderData.profile.display_name?.trim() || "A lifter";
+    const name = loaderData.profile.first_name?.trim() || "A lifter";
     const title = `${name}'s training — IronLog`;
     const desc = `${loaderData.sets.length} sets logged. See ${name}'s weight and volume trends, weekly split and personal bests.`;
     return {
@@ -55,7 +54,7 @@ function SharedPage() {
     );
   }
 
-  const name = data.profile.display_name?.trim() || "A lifter";
+  const name = data.profile.first_name?.trim() || "A lifter";
 
   return (
     <div className="min-h-screen bg-hero pb-16">
@@ -65,10 +64,9 @@ function SharedPage() {
       </header>
       <main className="mx-auto max-w-5xl px-4">
         <div className="mb-6 mt-4 flex items-center gap-4">
-          <Avatar className="h-14 w-14 border border-border">
-            {data.profile.avatar_url ? <AvatarImage src={data.profile.avatar_url} alt="" referrerPolicy="no-referrer" /> : null}
-            <AvatarFallback className="bg-secondary font-display text-xl font-black">{name.slice(0, 1).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <span className="grid h-14 w-14 place-items-center rounded-full border border-border bg-secondary font-display text-xl font-black">
+            {name.slice(0, 1).toUpperCase()}
+          </span>
           <div>
             <h1 className="font-display text-4xl font-black uppercase leading-none">{name}</h1>
             <p className="text-sm text-muted-foreground">Training progress</p>

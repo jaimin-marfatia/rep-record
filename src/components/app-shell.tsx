@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { BarChart3, Dumbbell, LogOut, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth-provider";
 import { Logo } from "@/components/logo";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { profileQueryOptions } from "@/lib/workout-queries";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,18 +21,17 @@ const NAV = [
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { data: profile } = useSuspenseQuery(profileQueryOptions);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const meta = (session?.user.user_metadata ?? {}) as Record<string, unknown>;
-  const name = (meta["full_name"] as string | undefined) ?? session?.user.email ?? "Lifter";
-  const avatar = (meta["avatar_url"] as string | undefined) ?? (meta["picture"] as string | undefined);
+  const firstName = profile.first_name?.trim() || "Lifter";
+  const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ") || firstName;
 
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
+    navigate({ to: "/login", replace: true });
   }
 
   return (
@@ -56,14 +54,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </nav>
           <DropdownMenu>
             <DropdownMenuTrigger className="rounded-full outline-none ring-ring focus-visible:ring-2">
-              <Avatar className="h-9 w-9 border border-border">
-                {avatar ? <AvatarImage src={avatar} alt="" referrerPolicy="no-referrer" /> : null}
-                <AvatarFallback className="bg-secondary text-sm font-bold">{name.slice(0, 1).toUpperCase()}</AvatarFallback>
-              </Avatar>
+              <span className="grid h-9 w-9 place-items-center rounded-full border border-border bg-secondary text-sm font-bold">
+                {firstName.slice(0, 1).toUpperCase()}
+              </span>
               <span className="sr-only">Account menu</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
+              <DropdownMenuLabel className="truncate">
+                {fullName}
+                {profile.username ? <div className="truncate text-xs font-normal text-muted-foreground">@{profile.username}</div> : null}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={signOut}>
                 <LogOut className="mr-2 h-4 w-4" /> Sign out
@@ -73,7 +73,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 pt-6">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 pt-6">
+        <p className="mb-3 text-sm font-semibold text-muted-foreground">
+          Hey, <span className="text-foreground">{firstName}</span> — let's lift.
+        </p>
+        {children}
+      </main>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur md:hidden">
         <div className="mx-auto grid max-w-md grid-cols-3">

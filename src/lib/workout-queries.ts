@@ -8,11 +8,14 @@ export interface StoredSet extends WorkoutSet {
 
 export interface Profile {
   id: string;
-  display_name: string | null;
-  avatar_url: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  username: string | null;
   share_token: string;
   share_enabled: boolean;
 }
+
+const PROFILE_COLS = "id, first_name, last_name, username, share_token, share_enabled";
 
 const PAGE = 1000;
 
@@ -50,18 +53,18 @@ async function fetchProfile(): Promise<Profile> {
   if (!user) throw new Error("Not signed in");
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_name, avatar_url, share_token, share_enabled")
+    .select(PROFILE_COLS)
     .eq("id", user.id)
     .maybeSingle();
   if (error) throw error;
   if (data) return data;
   // Safety net if the profile row was never created.
   const meta = user.user_metadata as Record<string, unknown>;
-  const name = typeof meta["full_name"] === "string" ? (meta["full_name"] as string) : (user.email?.split("@")[0] ?? null);
+  const str = (k: string) => (typeof meta[k] === "string" ? (meta[k] as string) : null);
   const { data: created, error: insErr } = await supabase
     .from("profiles")
-    .insert({ id: user.id, display_name: name })
-    .select("id, display_name, avatar_url, share_token, share_enabled")
+    .insert({ id: user.id, first_name: str("first_name"), last_name: str("last_name"), username: str("username"), display_name: str("first_name") })
+    .select(PROFILE_COLS)
     .single();
   if (insErr) throw insErr;
   return created;
@@ -109,14 +112,14 @@ export function useDeleteSet() {
 export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: Partial<Pick<Profile, "display_name" | "share_enabled" | "share_token">>) => {
+    mutationFn: async (patch: Partial<Pick<Profile, "share_enabled" | "share_token">>) => {
       const current = qc.getQueryData<Profile>(profileQueryOptions.queryKey);
       if (!current) throw new Error("Profile not loaded");
       const { data, error } = await supabase
         .from("profiles")
         .update(patch)
         .eq("id", current.id)
-        .select("id, display_name, avatar_url, share_token, share_enabled")
+        .select(PROFILE_COLS)
         .single();
       if (error) throw error;
       return data;

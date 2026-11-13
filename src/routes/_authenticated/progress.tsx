@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { AppShell } from "@/components/app-shell";
 import { ProgressDashboard } from "@/components/progress-dashboard";
-import { setsQueryOptions } from "@/lib/workout-queries";
+import { profileQueryOptions, setsQueryOptions } from "@/lib/workout-queries";
 
 export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
@@ -13,7 +13,11 @@ export const Route = createFileRoute("/_authenticated/progress")({
       { property: "og:description", content: "Weight and volume trends per muscle, weekly split radar and personal bests." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(setsQueryOptions),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(setsQueryOptions),
+      context.queryClient.ensureQueryData(profileQueryOptions),
+    ]),
   component: ProgressPage,
 });
 

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Dumbbell, Radar, Share2, Trophy } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import { GoogleButton } from "@/components/google-button";
 import { Logo } from "@/components/logo";
 import { MUSCLES, MUSCLE_LABEL, WEIGHT_PRESETS, muscleColor } from "@/lib/workout";
 
@@ -38,7 +37,7 @@ function Landing() {
             Open my log
           </Link>
         ) : (
-          <Link to="/auth" className="rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary">
+          <Link to="/login" className="rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-secondary">
             Sign in
           </Link>
         )}
@@ -64,7 +63,14 @@ function Landing() {
                   Start logging <ArrowRight className="h-4 w-4" />
                 </Link>
               ) : (
-                <GoogleButton />
+                <>
+                  <Link to="/signup" className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 font-bold text-primary-foreground shadow-glow">
+                    Create free account <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <Link to="/login" className="inline-flex h-11 items-center rounded-full border border-border px-6 font-semibold hover:bg-secondary">
+                    Sign in
+                  </Link>
+                </>
               )}
             </div>
           </div>

@@ -35,3 +35,5 @@ use the editor.
 - Signed-in data is read/written from the browser client under RLS (`src/lib/workout-queries.ts`); pages under `_authenticated` load via `ensureQueryData` + `useSuspenseQuery`.
 - Public sharing goes only through security-definer RPCs `get_shared_profile` / `get_shared_sets` (gated by `profiles.share_enabled`), called from a publishable-key server function — tables themselves have no anon access.
 - One auth listener lives in `src/components/auth-provider.tsx`; don't add per-page `onAuthStateChange` subscribers.
+- Accounts are username + password: usernames map to a synthetic never-emailed address (`usernameToEmail` in `src/lib/account.ts`, tested in `src/test/account.test.ts`); sign-up runs through the public `createAccount` server fn, which creates pre-confirmed users with the admin client so no confirmation email is ever needed. Uniqueness is enforced by a case-insensitive unique index on `profiles.username`.
+- `/auth` only redirects to `/login` — the managed `_authenticated` gate still targets `/auth`.

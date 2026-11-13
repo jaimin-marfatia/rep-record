@@ -11,7 +11,6 @@
 @theme inline {
   --font-display: "Big Shoulders Display", "Barlow", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
-  --font-google: "Google Sans", "Barlow", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -65,9 +64,6 @@
   --color-m-abs: var(--m-abs);
   --color-m-legs: var(--m-legs);
 
-  --color-google-bg: var(--google-bg);
-  --color-google-border: var(--google-border);
-  --color-google-text: var(--google-text);
 }
 
 /* IronLog: dark "chalk & iron" gym theme with a volt-lime accent. */
@@ -109,10 +105,6 @@
   --chart-4: var(--m-abs);
   --chart-5: var(--m-back);
 
-  /* Google sign-in button, dark theme per Google branding */
-  --google-bg: oklch(0.18 0.002 286);
-  --google-border: oklch(0.63 0.006 150);
-  --google-text: oklch(0.91 0.003 106);
 
   --sidebar: var(--card);
   --sidebar-foreground: var(--foreground);

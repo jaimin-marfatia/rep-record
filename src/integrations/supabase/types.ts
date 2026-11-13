@@ -19,28 +19,37 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
           share_enabled: boolean
           share_token: string
           updated_at: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id: string
+          last_name?: string | null
           share_enabled?: boolean
           share_token?: string
           updated_at?: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           share_enabled?: boolean
           share_token?: string
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -82,8 +91,7 @@ export type Database = {
       get_shared_profile: {
         Args: { _token: string }
         Returns: {
-          avatar_url: string
-          display_name: string
+          first_name: string
         }[]
       }
       get_shared_sets: {
