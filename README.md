@@ -9,18 +9,7 @@ Core requirements:
 - Workout logging: log workouts by selecting muscle, entering total weight and reps, with quick-save and viewing today's active session history.
 - Visualizations & graphs: creative charts showing weight and volume trends over time per muscle group, a weekly muscle split radar/balance chart, and personal best PR milestones.
 - Sharing: public shareable workout link or summary card that can be viewed by anyone without editing permissions.
-- Authentication: Google login (Gmail).
 - Clean, responsive mobile-friendly UI.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/c446a5c2-3d18-4c39-89e7-c214f604ea5a).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
