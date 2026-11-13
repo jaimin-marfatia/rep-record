@@ -18,7 +18,7 @@ import {
   setVolume,
   type Muscle,
 } from "@/lib/workout";
-import { setsQueryOptions, useAddSet, useDeleteSet, type StoredSet } from "@/lib/workout-queries";
+import { profileQueryOptions, setsQueryOptions, useAddSet, useDeleteSet, type StoredSet } from "@/lib/workout-queries";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/log")({
@@ -30,7 +30,11 @@ export const Route = createFileRoute("/_authenticated/log")({
       { property: "og:description", content: "Log a set: choose a muscle, total weight and reps, then save." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(setsQueryOptions),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(setsQueryOptions),
+      context.queryClient.ensureQueryData(profileQueryOptions),
+    ]),
   component: LogPage,
 });
 
