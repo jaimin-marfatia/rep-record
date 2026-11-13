@@ -32,7 +32,7 @@ export function Field({
   error,
   hint,
   ...props
-}: { id: string; label: string; error?: string; hint?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+}: { id: string; label: string; error?: string | undefined; hint?: string | undefined } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div>
       <label htmlFor={id} className="text-sm font-semibold">
