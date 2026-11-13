@@ -4,7 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { isMuscle, type WorkoutSet } from "@/lib/workout";
 
 export interface SharedWorkout {
-  profile: { display_name: string | null; avatar_url: string | null };
+  profile: { first_name: string | null };
   sets: WorkoutSet[];
 }
 
@@ -45,5 +45,5 @@ export const getSharedWorkout = createServerFn({ method: "GET" })
       }
       if (!rows || rows.length < PAGE) break;
     }
-    return { profile: { display_name: profile.display_name, avatar_url: profile.avatar_url }, sets };
+    return { profile: { first_name: profile.first_name }, sets };
   });
