@@ -31,12 +31,11 @@ function SharePage() {
   const { data: sets } = useSuspenseQuery(setsQueryOptions);
   const { data: profile } = useSuspenseQuery(profileQueryOptions);
   const update = useUpdateProfile();
-  const [name, setName] = useState(profile.display_name ?? "");
   const [origin, setOrigin] = useState("");
   useEffect(() => setOrigin(window.location.origin), []);
 
   const url = `${origin}/s/${profile.share_token}`;
-  const displayName = profile.display_name?.trim() || "My training";
+  const displayName = profile.first_name?.trim() || "My training";
 
   async function patch(p: Parameters<typeof update.mutateAsync>[0], msg: string) {
     try {
@@ -127,28 +126,6 @@ function SharePage() {
             ) : null}
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-5">
-            <label htmlFor="display-name" className="font-semibold">
-              Name shown on your shared page
-            </label>
-            <div className="mt-3 flex gap-2">
-              <input
-                id="display-name"
-                value={name}
-                maxLength={60}
-                onChange={(e) => setName(e.target.value)}
-                className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 outline-none focus:border-primary"
-              />
-              <button
-                type="button"
-                disabled={update.isPending || name.trim() === (profile.display_name ?? "")}
-                onClick={() => void patch({ display_name: name.trim() || null }, "Name updated")}
-                className="rounded-xl bg-secondary px-4 text-sm font-bold hover:bg-accent disabled:opacity-40"
-              >
-                Save
-              </button>
-            </div>
-          </section>
         </div>
 
         <div className="min-w-0">
