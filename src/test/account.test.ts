@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  loginErrorMessage,
   normalizeUsername,
   passwordError,
   safeRedirectPath,
@@ -57,5 +58,14 @@ describe("post-login redirect", () => {
     expect(safeRedirectPath("//evil.example")).toBeUndefined();
     expect(safeRedirectPath("/login")).toBeUndefined();
     expect(safeRedirectPath("/signup?x=1")).toBeUndefined();
+  });
+});
+
+describe("sign-in errors", () => {
+  it("says wrong username or password for bad credentials", () => {
+    expect(loginErrorMessage("Invalid login credentials")).toBe("Wrong username or password");
+  });
+  it("gives a general retry message for other failures", () => {
+    expect(loginErrorMessage("fetch failed")).toBe("Couldn't sign in. Please try again.");
   });
 });

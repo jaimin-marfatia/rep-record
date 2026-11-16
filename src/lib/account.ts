@@ -79,3 +79,8 @@ export function safeRedirectPath(p: unknown): string | undefined {
     return undefined;
   }
 }
+
+/** Sign-in failure message: never reveals whether the username exists. */
+export function loginErrorMessage(authError: string): string {
+  return authError.toLowerCase().includes("invalid") ? "Wrong username or password" : "Couldn't sign in. Please try again.";
+}

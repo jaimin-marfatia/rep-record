@@ -17,6 +17,7 @@ import {
   type SignupInput,
 } from "@/lib/account";
 import { createAccount } from "@/lib/auth.functions";
+import { signUpAndSignIn } from "@/lib/signup-flow";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -64,20 +65,24 @@ function SignupPage() {
 
     setBusy(true);
     try {
-      const res = await create({ data: form });
-      if (!res.ok) {
-        if (res.field) setErrors({ [res.field]: res.message });
-        else setFormError(res.message);
-        return;
-      }
-      const { error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(form.username), password: form.password });
-      if (error) {
+      const outcome = await signUpAndSignIn({
+        create: () => create({ data: form }),
+        signIn: async () => {
+          const { error } = await supabase.auth.signInWithPassword({ email: usernameToEmail(form.username), password: form.password });
+          return { ok: !error };
+        },
+      });
+      if (outcome.kind === "field-error") setErrors({ [outcome.field]: outcome.message });
+      else if (outcome.kind === "form-error") setFormError(outcome.message);
+      else if (outcome.kind === "created-sign-in-manually") {
         toast.success("Account created — please sign in.");
         navigate({ to: "/login", search: redirect ? { redirect } : {} });
-        return;
+      } else {
+        toast.success(`Welcome, ${form.firstName.trim()}!`);
+        navigate({ to: redirect ?? "/log", replace: true });
       }
-      toast.success(`Welcome, ${form.firstName.trim()}!`);
-    } catch {
+    } catch (err) {
+      console.error("[signup] unexpected error", err);
       setFormError("Couldn't create your account. Please try again.");
     } finally {
       setBusy(false);

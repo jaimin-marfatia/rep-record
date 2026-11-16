@@ -6,6 +6,7 @@ import { Copy, ExternalLink, Eye, Lock, RefreshCw, Share2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { SummaryCard } from "@/components/summary-card";
 import { Switch } from "@/components/ui/switch";
+import { newShareToken, shareDisplayName, shareUrl } from "@/lib/share";
 import { profileQueryOptions, setsQueryOptions, useUpdateProfile } from "@/lib/workout-queries";
 
 export const Route = createFileRoute("/_authenticated/share")({
@@ -25,7 +26,6 @@ export const Route = createFileRoute("/_authenticated/share")({
   component: SharePage,
 });
 
-const newToken = () => crypto.randomUUID().replace(/-/g, "").slice(0, 16);
 
 function SharePage() {
   const { data: sets } = useSuspenseQuery(setsQueryOptions);
@@ -34,8 +34,8 @@ function SharePage() {
   const [origin, setOrigin] = useState("");
   useEffect(() => setOrigin(window.location.origin), []);
 
-  const url = `${origin}/s/${profile.share_token}`;
-  const displayName = profile.first_name?.trim() || "My training";
+  const url = shareUrl(origin, profile.share_token);
+  const displayName = shareDisplayName(profile.first_name);
 
   async function patch(p: Parameters<typeof update.mutateAsync>[0], msg: string) {
     try {
@@ -116,7 +116,7 @@ function SharePage() {
                   <button
                     type="button"
                     disabled={update.isPending}
-                    onClick={() => void patch({ share_token: newToken() }, "New link created — the old one no longer works")}
+                    onClick={() => void patch({ share_token: newShareToken() }, "New link created — the old one no longer works")}
                     className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
                   >
                     <RefreshCw className="h-4 w-4" /> New link
