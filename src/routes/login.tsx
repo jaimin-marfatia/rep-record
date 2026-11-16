@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/auth-provider";
 import { AuthLayout, Field } from "@/components/auth-layout";
-import { safeRedirectPath, usernameError, usernameToEmail } from "@/lib/account";
+import { safeRedirectPath, usernameError, usernameToEmail, loginErrorMessage } from "@/lib/account";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -48,7 +48,7 @@ function LoginPage() {
     const { error: err } = await supabase.auth.signInWithPassword({ email: usernameToEmail(username), password });
     setBusy(false);
     if (err) {
-      setError(err.message.toLowerCase().includes("invalid") ? "Wrong username or password" : "Couldn't sign in. Please try again.");
+      setError(loginErrorMessage(err.message));
     }
     // On success the auth listener updates the session and the effect above navigates.
   }

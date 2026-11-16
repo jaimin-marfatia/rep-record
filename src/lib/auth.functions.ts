@@ -1,9 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { normalizeUsername, usernameToEmail, validateSignup, type SignupInput } from "@/lib/account";
+import type { SignupInput } from "@/lib/account";
+import { runCreateAccount, type CreateAccountResult } from "@/lib/create-account";
 
-export type CreateAccountResult = { ok: true } | { ok: false; field?: keyof SignupInput; message: string };
-
-const TAKEN = "That username is taken — try another";
+export type { CreateAccountResult };
 
 /**
  * Public: creates a username/password account. Accounts are created pre-confirmed because the
@@ -17,42 +16,15 @@ export const createAccount = createServerFn({ method: "POST" })
     password: String(input?.password ?? "").slice(0, 200),
   }))
   .handler(async ({ data }): Promise<CreateAccountResult> => {
-    const errors = validateSignup(data);
-    const first = (Object.keys(errors) as (keyof SignupInput)[])[0];
-    if (first) return { ok: false, field: first, message: errors[first]! };
-
-    const username = normalizeUsername(data.username);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: existing, error: lookupErr } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .ilike("username", username)
-      .limit(1);
-    if (lookupErr) {
-      console.error("[signup] username lookup failed", lookupErr.message);
-      return { ok: false, message: "Couldn't create your account. Please try again." };
-    }
-    if (existing && existing.length > 0) return { ok: false, field: "username", message: TAKEN };
-
-    const { error } = await supabaseAdmin.auth.admin.createUser({
-      email: usernameToEmail(username),
-      password: data.password,
-      email_confirm: true,
-      user_metadata: {
-        first_name: data.firstName.trim(),
-        last_name: data.lastName.trim(),
-        username,
+    return runCreateAccount(data, {
+      async findUsername(username) {
+        const { data: rows, error } = await supabaseAdmin.from("profiles").select("id").ilike("username", username).limit(1);
+        return { taken: !!rows && rows.length > 0, ...(error ? { error: error.message } : {}) };
+      },
+      async createUser({ email, password, metadata }) {
+        const { error } = await supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: metadata });
+        return error ? { error: error.message } : {};
       },
     });
-    if (error) {
-      // The synthetic email or the unique username index collided with a concurrent signup.
-      const msg = error.message.toLowerCase();
-      if (msg.includes("already") || msg.includes("database error")) {
-        return { ok: false, field: "username", message: TAKEN };
-      }
-      console.error("[signup] createUser failed", error.message);
-      return { ok: false, message: "Couldn't create your account. Please try again." };
-    }
-    return { ok: true };
   });

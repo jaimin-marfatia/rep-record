@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { isShareToken } from "@/lib/share";
 import { isMuscle, type WorkoutSet } from "@/lib/workout";
 
 export interface SharedWorkout {
@@ -12,7 +13,7 @@ export interface SharedWorkout {
 export const getSharedWorkout = createServerFn({ method: "GET" })
   .inputValidator((input: { token: string }) => ({ token: String(input?.token ?? "") }))
   .handler(async ({ data }): Promise<SharedWorkout | null> => {
-    if (!/^[a-zA-Z0-9]{8,64}$/.test(data.token)) return null;
+    if (!isShareToken(data.token)) return null;
     const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
     const client = createClient<Database>(process.env["SUPABASE_URL"]!, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
