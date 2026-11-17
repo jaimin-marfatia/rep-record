@@ -11,12 +11,12 @@ export const Route = createFileRoute("/")({
       { title: "IronLog — Log sets fast, watch your strength climb" },
       {
         name: "description",
-        content: "A fast gym tracker: pick a muscle, tap a weight, save. See volume trends, weekly split radar and PRs, and share a read-only link.",
+        content: "A fast gym tracker: pick a muscle, tap a weight, save. See weight trends, weekly split radar and PRs, and share a read-only link.",
       },
       { property: "og:title", content: "IronLog — Log sets fast, watch your strength climb" },
       {
         property: "og:description",
-        content: "Pick a muscle, tap a weight, save. Volume trends, weekly split radar, PR milestones and shareable progress.",
+        content: "Pick a muscle, tap a weight, save. Weight trends, weekly split radar, PR milestones and shareable progress.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -102,8 +102,8 @@ function Landing() {
             </div>
             <div className="mt-5 flex items-center justify-between rounded-2xl bg-secondary p-4">
               <div>
-                <div className="text-xs text-muted-foreground">Chest · 45 lb × 10</div>
-                <div className="font-display text-2xl font-black">450 lb volume</div>
+                <div className="text-xs text-muted-foreground">Chest · 45 lb</div>
+                <div className="font-display text-2xl font-black">3 sets saved</div>
               </div>
               <span className="rounded-full bg-gold px-3 py-1 text-xs font-bold text-background">NEW PR</span>
             </div>

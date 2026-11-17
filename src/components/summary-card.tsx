@@ -48,9 +48,9 @@ export const SummaryCard = forwardRef<HTMLDivElement, { name: string; sets: Work
 
       <div className="mt-5 grid grid-cols-3 gap-2">
         {[
-          { l: "Volume", v: `${formatLbs(summary.totalVolume)}` },
           { l: "Sets", v: summary.totalSets.toLocaleString("en-US") },
           { l: "Days", v: `${summary.workoutDays}` },
+          { l: "Streak", v: `${summary.currentStreak}` },
         ].map((x) => (
           <div key={x.l} className="rounded-xl bg-background/50 p-3">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{x.l}</div>

@@ -26,6 +26,7 @@ import {
   muscleColor,
   personalBests,
   prMilestones,
+  setsLabel,
   summarize,
   weeklySplit,
   type Muscle,
@@ -102,13 +103,13 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Total volume" value={`${formatLbs(summary.totalVolume)} lb`} accent />
-        <StatTile label="Sets logged" value={summary.totalSets.toLocaleString("en-US")} />
+        <StatTile label="Sets logged" value={summary.totalSets.toLocaleString("en-US")} accent />
+        <StatTile label="Training days" value={`${summary.workoutDays}`} />
         <StatTile label="This week" value={`${summary.thisWeekSets} sets`} />
         <StatTile label="Day streak" value={`${summary.currentStreak}`} />
       </div>
 
-      <Panel title="Weight & volume trend" subtitle="Bars show daily volume (total weight across sets). Line shows your heaviest set.">
+      <Panel title="Weight trend" subtitle="Line shows your heaviest weight each day. Bars show how many sets you did.">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5">
             {(["all", ...MUSCLES] as const).map((m) => (
@@ -149,21 +150,21 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={trend} margin={{ top: 8, right: 4, left: -12, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="volGrad" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="setsGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={trendColor} stopOpacity={0.55} />
                     <stop offset="100%" stopColor={trendColor} stopOpacity={0.08} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="label" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickLine={false} axisLine={false} minTickGap={16} />
-                <YAxis yAxisId="vol" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v: number) => formatLbs(v)} />
+                <YAxis yAxisId="sets" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <YAxis yAxisId="wt" orientation="right" tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickLine={false} axisLine={false} width={36} />
                 <Tooltip
                   contentStyle={tooltipStyle}
                   cursor={{ fill: "var(--accent)", opacity: 0.4 }}
-                  formatter={(value: number, name: string) => [`${formatLbs(value)} lb`, name]}
+                  formatter={(value: number, name: string) => [name === "Sets" ? String(value) : `${formatLbs(value)} lb`, name]}
                 />
-                <Bar yAxisId="vol" dataKey="volume" name="Volume" fill="url(#volGrad)" stroke={trendColor} strokeOpacity={0.6} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                <Bar yAxisId="sets" dataKey="sets" name="Sets" fill="url(#setsGrad)" stroke={trendColor} strokeOpacity={0.6} radius={[6, 6, 0, 0]} maxBarSize={28} />
                 <Line yAxisId="wt" type="monotone" dataKey="maxWeight" name="Top weight" stroke="var(--foreground)" strokeWidth={2.5} dot={{ r: 3, fill: trendColor, stroke: "var(--foreground)" }} />
               </ComposedChart>
             </ResponsiveContainer>
@@ -195,7 +196,7 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
                 {col.map((c) => (
                   <div
                     key={c.day}
-                    title={c.volume ? `${format(parseISO(c.day), "EEE MMM d")}: ${formatLbs(c.volume)} lb` : format(parseISO(c.day), "EEE MMM d")}
+                    title={c.sets ? `${format(parseISO(c.day), "EEE MMM d")}: ${setsLabel(c.sets)}` : format(parseISO(c.day), "EEE MMM d")}
                     className={cn("h-5 w-5 rounded-[5px] sm:h-6 sm:w-6", c.future ? "opacity-0" : c.level === 0 ? "bg-secondary" : "bg-primary")}
                     style={c.level > 0 ? { opacity: 0.25 + c.level * 0.1875 } : undefined}
                   />

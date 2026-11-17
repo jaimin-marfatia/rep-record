@@ -19,14 +19,19 @@ export const muscleColor = (m: Muscle) => `var(--m-${m})`;
 /** Quick weight buttons: 10 lbs to 60 lbs in 5 lb steps. */
 export const WEIGHT_PRESETS: number[] = Array.from({ length: 11 }, (_, i) => 10 + i * 5);
 export const MAX_WEIGHT = 5000;
-export const MAX_REPS = 1000;
+/** How many sets one save can record. */
+export const MIN_SET_COUNT = 1;
+export const MAX_SET_COUNT = 20;
+export const DEFAULT_SET_COUNT = 3;
 
+/** One saved log: a muscle, the total weight used, and how many sets were done at it. */
 export interface WorkoutSet {
   id?: string;
   muscle: Muscle;
   /** Total weight lifted in lbs (not per side). */
   weight: number;
-  reps: number;
+  /** Number of sets done in this log entry. */
+  setCount: number;
   performed_at: string;
 }
 
@@ -43,8 +48,14 @@ export function parseWeight(input: string): number | null {
   return n;
 }
 
-/** Reps are no longer tracked: each set counts its total weight once. */
-export const setVolume = (s: Pick<WorkoutSet, "weight">) => s.weight;
+/** Keeps a set count a whole number between MIN_SET_COUNT and MAX_SET_COUNT. */
+export function clampSetCount(n: number): number {
+  if (!Number.isFinite(n)) return MIN_SET_COUNT;
+  return Math.min(MAX_SET_COUNT, Math.max(MIN_SET_COUNT, Math.round(n)));
+}
+
+/** Total sets across log entries. */
+export const countSets = (sets: Pick<WorkoutSet, "setCount">[]) => sets.reduce((a, s) => a + s.setCount, 0);
 
 /**
  * Timestamp to save a set under. Today -> right now; a past day (yyyy-MM-dd)
@@ -62,10 +73,7 @@ const byTime = (a: WorkoutSet, b: WorkoutSet) => a.performed_at.localeCompare(b.
 
 export interface PersonalBest {
   weight: number;
-  reps: number;
   weightDate: string;
-  bestVolume: number;
-  volumeDate: string;
   totalSets: number;
 }
 
@@ -73,27 +81,14 @@ export function personalBests(sets: WorkoutSet[]): Record<Muscle, PersonalBest |
   const out = Object.fromEntries(MUSCLES.map((m) => [m, null])) as Record<Muscle, PersonalBest | null>;
   for (const s of [...sets].sort(byTime)) {
     const cur = out[s.muscle];
-    const vol = setVolume(s);
     if (!cur) {
-      out[s.muscle] = {
-        weight: s.weight,
-        reps: s.reps,
-        weightDate: s.performed_at,
-        bestVolume: vol,
-        volumeDate: s.performed_at,
-        totalSets: 1,
-      };
+      out[s.muscle] = { weight: s.weight, weightDate: s.performed_at, totalSets: s.setCount };
       continue;
     }
-    cur.totalSets += 1;
-    if (s.weight > cur.weight || (s.weight === cur.weight && s.reps > cur.reps)) {
+    cur.totalSets += s.setCount;
+    if (s.weight > cur.weight) {
       cur.weight = s.weight;
-      cur.reps = s.reps;
       cur.weightDate = s.performed_at;
-    }
-    if (vol > cur.bestVolume) {
-      cur.bestVolume = vol;
-      cur.volumeDate = s.performed_at;
     }
   }
   return out;
@@ -102,7 +97,6 @@ export function personalBests(sets: WorkoutSet[]): Record<Muscle, PersonalBest |
 export interface Milestone {
   muscle: Muscle;
   weight: number;
-  reps: number;
   date: string;
   previous: number | null;
 }
@@ -114,7 +108,7 @@ export function prMilestones(sets: WorkoutSet[]): Milestone[] {
   for (const s of [...sets].sort(byTime)) {
     const prev = best.get(s.muscle);
     if (prev === undefined || s.weight > prev) {
-      out.push({ muscle: s.muscle, weight: s.weight, reps: s.reps, date: s.performed_at, previous: prev ?? null });
+      out.push({ muscle: s.muscle, weight: s.weight, date: s.performed_at, previous: prev ?? null });
       best.set(s.muscle, s.weight);
     }
   }
@@ -131,7 +125,6 @@ export function isNewPR(set: Pick<WorkoutSet, "muscle" | "weight">, earlier: Wor
 export interface TrendPoint {
   day: string;
   maxWeight: number;
-  volume: number;
   sets: number;
 }
 
@@ -140,10 +133,9 @@ export function dailyTrend(sets: WorkoutSet[], muscle: Muscle | "all"): TrendPoi
   for (const s of sets) {
     if (muscle !== "all" && s.muscle !== muscle) continue;
     const k = dayKey(s.performed_at);
-    const p = map.get(k) ?? { day: k, maxWeight: 0, volume: 0, sets: 0 };
+    const p = map.get(k) ?? { day: k, maxWeight: 0, sets: 0 };
     p.maxWeight = Math.max(p.maxWeight, s.weight);
-    p.volume += setVolume(s);
-    p.sets += 1;
+    p.sets += s.setCount;
     map.set(k, p);
   }
   return [...map.values()].sort((a, b) => a.day.localeCompare(b.day));
@@ -167,16 +159,14 @@ export function weeklySplit(sets: WorkoutSet[], now: Date = new Date()): SplitPo
   >;
   for (const s of sets) {
     const t = parseISO(s.performed_at);
-    if (t >= thisStart && t < nextStart) counts[s.muscle].thisWeek += 1;
-    else if (t >= lastStart && t < thisStart) counts[s.muscle].lastWeek += 1;
+    if (t >= thisStart && t < nextStart) counts[s.muscle].thisWeek += s.setCount;
+    else if (t >= lastStart && t < thisStart) counts[s.muscle].lastWeek += s.setCount;
   }
   return MUSCLES.map((m) => ({ muscle: m, label: MUSCLE_LABEL[m], ...counts[m] }));
 }
 
 export interface Summary {
   totalSets: number;
-  totalReps: number;
-  totalVolume: number;
   workoutDays: number;
   currentStreak: number;
   thisWeekSets: number;
@@ -194,34 +184,32 @@ export function summarize(sets: WorkoutSet[], now: Date = new Date()): Summary {
   }
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   return {
-    totalSets: sets.length,
-    totalReps: sets.reduce((a, s) => a + s.reps, 0),
-    totalVolume: sets.reduce((a, s) => a + setVolume(s), 0),
+    totalSets: countSets(sets),
     workoutDays: days.size,
     currentStreak: streak,
-    thisWeekSets: sets.filter((s) => parseISO(s.performed_at) >= weekStart).length,
+    thisWeekSets: countSets(sets.filter((s) => parseISO(s.performed_at) >= weekStart)),
   };
 }
 
-/** Training-day heatmap cells for the last `weeks` weeks (Mon-start columns). */
+/** Training-day heatmap cells for the last `weeks` weeks (Mon-start columns), shaded by sets done. */
 export function activityGrid(sets: WorkoutSet[], weeks = 12, now: Date = new Date()) {
-  const vol = new Map<string, number>();
+  const perDay = new Map<string, number>();
   for (const s of sets) {
     const k = dayKey(s.performed_at);
-    vol.set(k, (vol.get(k) ?? 0) + setVolume(s));
+    perDay.set(k, (perDay.get(k) ?? 0) + s.setCount);
   }
   const start = subWeeks(startOfWeek(now, { weekStartsOn: 1 }), weeks - 1);
-  const max = Math.max(1, ...vol.values());
-  const cols: { day: string; volume: number; level: number; future: boolean }[][] = [];
+  const max = Math.max(1, ...perDay.values());
+  const cols: { day: string; sets: number; level: number; future: boolean }[][] = [];
   for (let w = 0; w < weeks; w++) {
     const col = [];
     for (let d = 0; d < 7; d++) {
       const date = addDays(start, w * 7 + d);
       const k = dayKey(date);
-      const v = vol.get(k) ?? 0;
+      const v = perDay.get(k) ?? 0;
       col.push({
         day: k,
-        volume: v,
+        sets: v,
         level: v === 0 ? 0 : Math.min(4, Math.ceil((v / max) * 4)),
         future: differenceInCalendarDays(date, now) > 0,
       });
@@ -236,3 +224,5 @@ export function formatLbs(n: number): string {
   if (n >= 10000) return `${(n / 1000).toFixed(1)}k`;
   return Number.isInteger(n) ? n.toLocaleString("en-US") : n.toFixed(1);
 }
+
+export const setsLabel = (n: number) => `${n} ${n === 1 ? "set" : "sets"}`;

@@ -41,7 +41,7 @@ export const getSharedWorkout = createServerFn({ method: "GET" })
       if (setErr) throw new Error("Could not load this shared log");
       for (const r of rows ?? []) {
         if (isMuscle(r.muscle)) {
-          sets.push({ muscle: r.muscle, weight: Number(r.weight), reps: r.reps, performed_at: r.performed_at });
+          sets.push({ muscle: r.muscle, weight: Number(r.weight), setCount: r.set_count, performed_at: r.performed_at });
         }
       }
       if (!rows || rows.length < PAGE) break;

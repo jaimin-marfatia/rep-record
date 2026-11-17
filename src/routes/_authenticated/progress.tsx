@@ -8,9 +8,9 @@ export const Route = createFileRoute("/_authenticated/progress")({
   head: () => ({
     meta: [
       { title: "Progress — IronLog" },
-      { name: "description", content: "Weight and volume trends per muscle, weekly split radar and personal bests." },
+      { name: "description", content: "Weight trends per muscle, weekly split radar and personal bests." },
       { property: "og:title", content: "Progress — IronLog" },
-      { property: "og:description", content: "Weight and volume trends per muscle, weekly split radar and personal bests." },
+      { property: "og:description", content: "Weight trends per muscle, weekly split radar and personal bests." },
     ],
   }),
   loader: ({ context }) =>

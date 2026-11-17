@@ -17,7 +17,7 @@ export function AuthLayout({ title, accent, subtitle, children }: { title: strin
           <div className="mt-8">{children}</div>
           <ul className="mt-10 space-y-3 text-sm text-muted-foreground">
             <li className="flex items-center gap-3"><Dumbbell className="h-4 w-4 text-primary" /> Log a set in three taps</li>
-            <li className="flex items-center gap-3"><LineChart className="h-4 w-4 text-primary" /> Weight, volume and PR charts</li>
+            <li className="flex items-center gap-3"><LineChart className="h-4 w-4 text-primary" /> Weight, sets and PR charts</li>
             <li className="flex items-center gap-3"><Share2 className="h-4 w-4 text-primary" /> Share a read-only link with friends</li>
           </ul>
         </div>

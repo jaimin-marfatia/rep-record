@@ -1,6 +1,6 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { isMuscle, type Muscle, type WorkoutSet } from "@/lib/workout";
+import { clampSetCount, isMuscle, type Muscle, type WorkoutSet } from "@/lib/workout";
 
 export interface StoredSet extends WorkoutSet {
   id: string;
@@ -18,10 +18,11 @@ export interface Profile {
 const PROFILE_COLS = "id, first_name, last_name, username, share_token, share_enabled";
 
 const PAGE = 1000;
+const SET_COLS = "id, muscle, weight, set_count, performed_at";
 
-function toSet(r: { id: string; muscle: string; weight: number; reps: number; performed_at: string }): StoredSet | null {
+function toSet(r: { id: string; muscle: string; weight: number; set_count: number; performed_at: string }): StoredSet | null {
   if (!isMuscle(r.muscle)) return null;
-  return { id: r.id, muscle: r.muscle, weight: Number(r.weight), reps: r.reps, performed_at: r.performed_at };
+  return { id: r.id, muscle: r.muscle, weight: Number(r.weight), setCount: r.set_count, performed_at: r.performed_at };
 }
 
 async function fetchAllSets(): Promise<StoredSet[]> {
@@ -29,7 +30,7 @@ async function fetchAllSets(): Promise<StoredSet[]> {
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await supabase
       .from("workout_sets")
-      .select("id, muscle, weight, reps, performed_at")
+      .select(SET_COLS)
       .order("performed_at", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw error;
@@ -78,11 +79,11 @@ export const profileQueryOptions = queryOptions({
 export function useAddSet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { muscle: Muscle; weight: number; performed_at?: string }) => {
+    mutationFn: async (input: { muscle: Muscle; weight: number; setCount: number; performed_at?: string }) => {
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert({ ...input, reps: 1 })
-        .select("id, muscle, weight, reps, performed_at")
+        .insert({ muscle: input.muscle, weight: input.weight, set_count: clampSetCount(input.setCount), performed_at: input.performed_at })
+        .select(SET_COLS)
         .single();
       if (error) throw error;
       const s = toSet(data);

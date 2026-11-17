@@ -22,7 +22,7 @@ export const Route = createFileRoute("/s/$token")({
     }
     const name = loaderData.profile.first_name?.trim() || "A lifter";
     const title = `${name}'s training — IronLog`;
-    const desc = `${loaderData.sets.length} sets logged. See ${name}'s weight and volume trends, weekly split and personal bests.`;
+    const desc = `${loaderData.sets.length} sets logged. See ${name}'s weight trends, weekly split and personal bests.`;
     return {
       meta: [
         { title },

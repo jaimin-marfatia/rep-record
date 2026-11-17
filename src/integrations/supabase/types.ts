@@ -60,6 +60,7 @@ export type Database = {
           muscle: string
           performed_at: string
           reps: number
+          set_count: number
           user_id: string
           weight: number
         }
@@ -68,7 +69,8 @@ export type Database = {
           id?: string
           muscle: string
           performed_at?: string
-          reps: number
+          reps?: number
+          set_count?: number
           user_id?: string
           weight: number
         }
@@ -78,6 +80,7 @@ export type Database = {
           muscle?: string
           performed_at?: string
           reps?: number
+          set_count?: number
           user_id?: string
           weight?: number
         }
@@ -99,7 +102,7 @@ export type Database = {
         Returns: {
           muscle: string
           performed_at: string
-          reps: number
+          set_count: number
           weight: number
         }[]
       }
