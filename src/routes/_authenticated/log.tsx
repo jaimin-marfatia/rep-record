@@ -3,10 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
-import { Check, Loader2, Minus, Plus, RotateCcw, Trash2, Trophy } from "lucide-react";
+import { Check, Loader2, RotateCcw, Trash2, Trophy } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import {
-  MAX_REPS,
   MUSCLES,
   MUSCLE_LABEL,
   WEIGHT_PRESETS,
@@ -15,6 +14,7 @@ import {
   isNewPR,
   muscleColor,
   parseWeight,
+  performedAtFor,
   setVolume,
   type Muscle,
 } from "@/lib/workout";
@@ -25,9 +25,9 @@ export const Route = createFileRoute("/_authenticated/log")({
   head: () => ({
     meta: [
       { title: "Log workout — IronLog" },
-      { name: "description", content: "Log a set: choose a muscle, total weight and reps, then save." },
+      { name: "description", content: "Log a set: choose a muscle, total weight and date, then save." },
       { property: "og:title", content: "Log workout — IronLog" },
-      { property: "og:description", content: "Log a set: choose a muscle, total weight and reps, then save." },
+      { property: "og:description", content: "Log a set: choose a muscle, total weight and date, then save." },
     ],
   }),
   loader: ({ context }) =>
@@ -37,8 +37,6 @@ export const Route = createFileRoute("/_authenticated/log")({
     ]),
   component: LogPage,
 });
-
-const QUICK_REPS = [5, 8, 10, 12, 15];
 
 function LogPage() {
   const { data: sets } = useSuspenseQuery(setsQueryOptions);
@@ -51,35 +49,35 @@ function LogPage() {
   const [customText, setCustomText] = useState(
     last && !WEIGHT_PRESETS.includes(last.weight) ? String(last.weight) : "",
   );
-  const [reps, setReps] = useState<number>(last?.reps ?? 10);
+  const todayKey = dayKey(new Date());
+  const [dateKey, setDateKey] = useState(todayKey);
+  const isToday = dateKey === todayKey;
 
   const customWeight = customText ? parseWeight(customText) : null;
   const effectiveWeight = customText ? customWeight : weight;
-  const repsValid = Number.isInteger(reps) && reps > 0 && reps <= MAX_REPS;
-  const canSave = effectiveWeight !== null && repsValid && !addSet.isPending;
+  const canSave = effectiveWeight !== null && !addSet.isPending;
 
-  const todayKey = dayKey(new Date());
-  const today = useMemo(() => sets.filter((s) => dayKey(s.performed_at) === todayKey), [sets, todayKey]);
+  const today = useMemo(() => sets.filter((s) => dayKey(s.performed_at) === dateKey), [sets, dateKey]);
   const groups = useMemo(() => {
     const map = new Map<Muscle, StoredSet[]>();
     for (const s of today) map.set(s.muscle, [...(map.get(s.muscle) ?? []), s]);
     return [...map.entries()];
   }, [today]);
 
-  async function save(input: { muscle: Muscle; weight: number; reps: number }) {
+  async function save(input: { muscle: Muscle; weight: number }) {
     const pr = isNewPR(input, sets);
     try {
-      await addSet.mutateAsync(input);
+      await addSet.mutateAsync({ ...input, performed_at: performedAtFor(dateKey) });
       if (pr) toast.success(`New PR! ${MUSCLE_LABEL[input.muscle]} ${formatLbs(input.weight)} lb`, { icon: <Trophy className="h-4 w-4" /> });
-      else toast.success(`Saved ${MUSCLE_LABEL[input.muscle]} · ${formatLbs(input.weight)} lb × ${input.reps}`);
+      else toast.success(`Saved ${MUSCLE_LABEL[input.muscle]} · ${formatLbs(input.weight)} lb${isToday ? "" : ` · ${format(parseISO(dateKey), "MMM d")}`}`);
     } catch {
       toast.error("Couldn't save that set. Check your connection and try again.");
     }
   }
 
   function onSave() {
-    if (effectiveWeight === null || !repsValid) return;
-    void save({ muscle, weight: effectiveWeight, reps });
+    if (effectiveWeight === null) return;
+    void save({ muscle, weight: effectiveWeight });
   }
 
   async function onDelete(id: string) {
@@ -92,7 +90,6 @@ function LogPage() {
   }
 
   const todayVolume = today.reduce((a, s) => a + setVolume(s), 0);
-  const todayReps = today.reduce((a, s) => a + s.reps, 0);
 
   return (
     <AppShell>
@@ -165,49 +162,21 @@ function LogPage() {
             <p className="mt-2 text-sm text-destructive">Enter a weight greater than 0.</p>
           ) : null}
 
-          <Label>Reps</Label>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              aria-label="Fewer reps"
-              onClick={() => setReps((r) => Math.max(1, (Number.isFinite(r) ? r : 1) - 1))}
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-secondary hover:bg-accent"
-            >
-              <Minus className="h-5 w-5" />
-            </button>
+          <Label>Date</Label>
+          <div className="flex items-center gap-2">
             <input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={MAX_REPS}
-              aria-label="Reps"
-              value={Number.isFinite(reps) ? reps : ""}
-              onChange={(e) => setReps(e.target.value === "" ? Number.NaN : Math.floor(Number(e.target.value)))}
-              className="h-14 w-full min-w-0 rounded-2xl border border-border bg-background text-center font-display text-4xl font-black tabular-nums outline-none focus:border-primary"
+              type="date"
+              aria-label="Workout date"
+              max={todayKey}
+              value={dateKey}
+              onChange={(e) => setDateKey(e.target.value && e.target.value <= todayKey ? e.target.value : todayKey)}
+              className="h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 font-semibold outline-none focus:border-primary [color-scheme:dark]"
             />
-            <button
-              type="button"
-              aria-label="More reps"
-              onClick={() => setReps((r) => Math.min(MAX_REPS, (Number.isFinite(r) ? r : 0) + 1))}
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-secondary hover:bg-accent"
-            >
-              <Plus className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="mt-2 flex gap-2">
-            {QUICK_REPS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => setReps(r)}
-                className={cn(
-                  "flex-1 rounded-lg py-1.5 text-sm font-bold",
-                  reps === r ? "bg-foreground text-background" : "bg-secondary text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {r}
+            {!isToday ? (
+              <button type="button" onClick={() => setDateKey(todayKey)} className="h-12 shrink-0 rounded-xl bg-secondary px-4 text-sm font-bold hover:bg-accent">
+                Today
               </button>
-            ))}
+            ) : null}
           </div>
 
           <button
@@ -218,9 +187,9 @@ function LogPage() {
           >
             {addSet.isPending ? <Loader2 className="h-6 w-6 animate-spin" /> : <Check className="h-6 w-6" />}
             Save set
-            {effectiveWeight !== null && repsValid ? (
+            {effectiveWeight !== null ? (
               <span className="ml-1 font-sans text-sm font-semibold normal-case opacity-80">
-                {formatLbs(effectiveWeight)} × {reps}
+                {formatLbs(effectiveWeight)} lb
               </span>
             ) : null}
           </button>
@@ -230,20 +199,19 @@ function LogPage() {
         <section className="min-w-0">
           <div className="flex items-end justify-between">
             <div>
-              <h2 className="font-display text-3xl font-black uppercase">Today's session</h2>
-              <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, MMMM d")}</p>
+              <h2 className="font-display text-3xl font-black uppercase">{isToday ? "Today's session" : "Session"}</h2>
+              <p className="text-sm text-muted-foreground">{format(parseISO(dateKey), "EEEE, MMMM d")}</p>
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2">
             <Mini label="Sets" value={String(today.length)} />
-            <Mini label="Reps" value={String(todayReps)} />
             <Mini label="Volume" value={`${formatLbs(todayVolume)}`} accent />
           </div>
 
           {groups.length === 0 ? (
             <div className="mt-4 rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-              No sets yet today. Your first one will show up here.
+              {isToday ? "No sets yet today. Your first one will show up here." : "No sets logged for this day yet."}
             </div>
           ) : (
             <div className="mt-4 space-y-3">
@@ -263,7 +231,7 @@ function LogPage() {
                       <button
                         type="button"
                         disabled={addSet.isPending}
-                        onClick={() => void save({ muscle: m, weight: lastOfGroup.weight, reps: lastOfGroup.reps })}
+                        onClick={() => void save({ muscle: m, weight: lastOfGroup.weight })}
                         className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1.5 text-xs font-bold hover:bg-accent disabled:opacity-50"
                       >
                         <RotateCcw className="h-3.5 w-3.5" /> Same again
@@ -274,8 +242,8 @@ function LogPage() {
                         <li key={s.id} className="flex items-center gap-3 px-4 py-2.5 text-sm even:bg-surface/50">
                           <span className="w-6 text-xs font-bold text-muted-foreground">#{i + 1}</span>
                           <span className="font-display text-xl font-extrabold tabular-nums">{formatLbs(s.weight)}</span>
-                          <span className="text-muted-foreground">lb × {s.reps}</span>
-                          <span className="ml-auto text-xs text-muted-foreground">{format(parseISO(s.performed_at), "h:mm a")}</span>
+                          <span className="text-muted-foreground">lb</span>
+                          <span className="ml-auto text-xs text-muted-foreground">{isToday ? format(parseISO(s.performed_at), "h:mm a") : null}</span>
                           <button
                             type="button"
                             aria-label="Remove set"

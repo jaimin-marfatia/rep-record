@@ -47,7 +47,7 @@ describe("personal bests", () => {
       s("chest", 40, 12, new Date(2026, 0, 2)),
       s("chest", 30, 20, new Date(2026, 0, 3)),
     ];
-    expect(personalBests(sets).chest).toMatchObject({ weight: 40, reps: 12, bestVolume: 600, totalSets: 3 });
+    expect(personalBests(sets).chest).toMatchObject({ weight: 40, bestVolume: 40, totalSets: 3 });
   });
 });
 
@@ -58,7 +58,7 @@ describe("weight and volume trend", () => {
     s("back", 50, 10, new Date(2026, 0, 1, 9)),
   ];
   it("gives one point per day with heaviest weight and total volume, oldest first", () => {
-    expect(dailyTrend(sets, "legs")).toEqual([{ day: "2026-01-02", maxWeight: 120, volume: 860, sets: 2 }]);
+    expect(dailyTrend(sets, "legs")).toEqual([{ day: "2026-01-02", maxWeight: 120, volume: 220, sets: 2 }]);
     expect(dailyTrend(sets, "all").map((p) => p.day)).toEqual(["2026-01-01", "2026-01-02"]);
   });
 });
@@ -80,7 +80,7 @@ describe("summary", () => {
     s("biceps", 25, 8, new Date(2026, 0, 12, 10)),
   ];
   it("totals sets, reps, volume and training days", () => {
-    expect(summarize(sets, now)).toMatchObject({ totalSets: 3, totalReps: 26, totalVolume: 600, workoutDays: 2, thisWeekSets: 3 });
+    expect(summarize(sets, now)).toMatchObject({ totalSets: 3, totalVolume: 70, workoutDays: 2, thisWeekSets: 3 });
   });
   it("keeps the streak alive when today hasn't been trained yet", () => {
     expect(summarize(sets, now).currentStreak).toBe(2);

@@ -55,7 +55,7 @@ function Landing() {
               <span className="text-primary">Level up.</span>
             </h1>
             <p className="mt-5 max-w-md text-lg text-muted-foreground">
-              Pick a muscle, tap a weight, enter reps, save. IronLog turns every set into trends, a weekly balance radar and PR milestones.
+              Pick a muscle, tap a weight, save. IronLog turns every set into trends, a weekly balance radar and PR milestones.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {ready && session ? (

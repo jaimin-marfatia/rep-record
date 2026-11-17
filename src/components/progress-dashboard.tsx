@@ -108,7 +108,7 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
         <StatTile label="Day streak" value={`${summary.currentStreak}`} />
       </div>
 
-      <Panel title="Weight & volume trend" subtitle="Bars show daily volume (weight × reps). Line shows your heaviest set.">
+      <Panel title="Weight & volume trend" subtitle="Bars show daily volume (total weight across sets). Line shows your heaviest set.">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap gap-1.5">
             {(["all", ...MUSCLES] as const).map((m) => (
@@ -232,8 +232,7 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
                       {formatLbs(b.weight)}
                       <span className="ml-1 text-sm font-semibold text-muted-foreground">lb</span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      × {b.reps} · {format(parseISO(b.weightDate), "MMM d")}
+                    <div className="text-xs text-muted-foreground"> · {format(parseISO(b.weightDate), "MMM d")}
                     </div>
                   </>
                 ) : (
@@ -258,7 +257,7 @@ export function ProgressDashboard({ sets }: { sets: WorkoutSet[] }) {
                       {MUSCLE_LABEL[m.muscle]}
                     </span>
                     <span className="font-display text-lg font-black">{formatLbs(m.weight)} lb</span>
-                    <span className="text-sm text-muted-foreground">× {m.reps}</span>
+                    
                     {m.previous !== null ? (
                       <span className="text-xs font-semibold text-primary">+{formatLbs(m.weight - m.previous)} lb</span>
                     ) : (

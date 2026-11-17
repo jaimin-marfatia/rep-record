@@ -36,8 +36,8 @@ describe("workout rules", () => {
     expect(parseWeight("abc")).toBeNull();
   });
 
-  it("volume is total weight times reps", () => {
-    expect(setVolume({ weight: 45, reps: 10 })).toBe(450);
+  it("volume is the total weight per set (no reps)", () => {
+    expect(setVolume({ weight: 45 })).toBe(45);
   });
 
   it("PR milestones only record increases in heaviest weight per muscle", () => {
@@ -82,5 +82,19 @@ describe("workout rules", () => {
       s("abs", 10, 20, new Date(2026, 0, 11, 9).toISOString()),
     ];
     expect(summarize(sets, now).currentStreak).toBe(2);
+  });
+});
+
+import { performedAtFor } from "@/lib/workout";
+describe("logging for a past date", () => {
+  const now = new Date(2026, 10, 16, 9, 30);
+  it("uses the current time for today", () => {
+    expect(performedAtFor("2026-11-16", now)).toBe(now.toISOString());
+  });
+  it("saves a past day at noon that day", () => {
+    expect(performedAtFor("2026-11-10", now)).toBe(new Date(2026, 10, 10, 12).toISOString());
+  });
+  it("never saves in the future", () => {
+    expect(performedAtFor("2026-12-01", now)).toBe(now.toISOString());
   });
 });

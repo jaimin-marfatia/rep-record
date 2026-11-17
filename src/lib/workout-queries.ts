@@ -78,10 +78,10 @@ export const profileQueryOptions = queryOptions({
 export function useAddSet() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { muscle: Muscle; weight: number; reps: number }) => {
+    mutationFn: async (input: { muscle: Muscle; weight: number; performed_at?: string }) => {
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert(input)
+        .insert({ ...input, reps: 1 })
         .select("id, muscle, weight, reps, performed_at")
         .single();
       if (error) throw error;
@@ -90,7 +90,9 @@ export function useAddSet() {
       return s;
     },
     onSuccess: (s) => {
-      qc.setQueryData<StoredSet[]>(setsQueryOptions.queryKey, (old) => [...(old ?? []), s]);
+      qc.setQueryData<StoredSet[]>(setsQueryOptions.queryKey, (old) =>
+        [...(old ?? []), s].sort((a, b) => a.performed_at.localeCompare(b.performed_at)),
+      );
     },
   });
 }

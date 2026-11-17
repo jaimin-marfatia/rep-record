@@ -43,7 +43,18 @@ export function parseWeight(input: string): number | null {
   return n;
 }
 
-export const setVolume = (s: Pick<WorkoutSet, "weight" | "reps">) => s.weight * s.reps;
+/** Reps are no longer tracked: each set counts its total weight once. */
+export const setVolume = (s: Pick<WorkoutSet, "weight">) => s.weight;
+
+/**
+ * Timestamp to save a set under. Today -> right now; a past day (yyyy-MM-dd)
+ * -> noon local time that day. Future days are clamped to now.
+ */
+export function performedAtFor(day: string, now: Date = new Date()): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day >= dayKey(now)) return now.toISOString();
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(y!, m! - 1, d!, 12, 0, 0).toISOString();
+}
 
 export const dayKey = (d: Date | string) => format(typeof d === "string" ? parseISO(d) : d, "yyyy-MM-dd");
 
