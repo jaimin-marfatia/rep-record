@@ -6,16 +6,17 @@ import {
   parseWeight,
   personalBests,
   prMilestones,
-  setVolume,
+  clampSetCount,
+  countSets,
   summarize,
   weeklySplit,
   type WorkoutSet,
 } from "@/lib/workout";
 
-const s = (muscle: WorkoutSet["muscle"], weight: number, reps: number, performed_at: string): WorkoutSet => ({
+const s = (muscle: WorkoutSet["muscle"], weight: number, setCount: number, performed_at: string): WorkoutSet => ({
   muscle,
   weight,
-  reps,
+  setCount,
   performed_at,
 });
 
@@ -36,8 +37,14 @@ describe("workout rules", () => {
     expect(parseWeight("abc")).toBeNull();
   });
 
-  it("volume is the total weight per set (no reps)", () => {
-    expect(setVolume({ weight: 45 })).toBe(45);
+  it("one save records how many sets were done, and totals add them up", () => {
+    expect(countSets([{ setCount: 3 }, { setCount: 4 }])).toBe(7);
+  });
+
+  it("number of sets per save stays between 1 and 20", () => {
+    expect(clampSetCount(0)).toBe(1);
+    expect(clampSetCount(3)).toBe(3);
+    expect(clampSetCount(25)).toBe(20);
   });
 
   it("PR milestones only record increases in heaviest weight per muscle", () => {
@@ -66,12 +73,12 @@ describe("workout rules", () => {
   it("weekly split counts sets this week vs last week (Monday start)", () => {
     const now = new Date(2026, 0, 14, 12); // Wed Jan 14 2026
     const sets = [
-      s("back", 50, 10, new Date(2026, 0, 12, 9).toISOString()), // this week
-      s("back", 50, 10, new Date(2026, 0, 13, 9).toISOString()), // this week
-      s("back", 50, 10, new Date(2026, 0, 8, 9).toISOString()), // last week
+      s("back", 50, 3, new Date(2026, 0, 12, 9).toISOString()), // this week
+      s("back", 50, 4, new Date(2026, 0, 13, 9).toISOString()), // this week
+      s("back", 50, 2, new Date(2026, 0, 8, 9).toISOString()), // last week
     ];
     const back = weeklySplit(sets, now).find((p) => p.muscle === "back");
-    expect(back).toMatchObject({ thisWeek: 2, lastWeek: 1 });
+    expect(back).toMatchObject({ thisWeek: 7, lastWeek: 2 });
   });
 
   it("streak counts consecutive training days", () => {

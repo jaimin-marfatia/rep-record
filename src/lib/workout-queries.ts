@@ -82,7 +82,7 @@ export function useAddSet() {
     mutationFn: async (input: { muscle: Muscle; weight: number; setCount: number; performed_at?: string }) => {
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert({ muscle: input.muscle, weight: input.weight, set_count: clampSetCount(input.setCount), performed_at: input.performed_at })
+        .insert({ muscle: input.muscle, weight: input.weight, set_count: clampSetCount(input.setCount), ...(input.performed_at ? { performed_at: input.performed_at } : {}) })
         .select(SET_COLS)
         .single();
       if (error) throw error;

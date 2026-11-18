@@ -12,10 +12,10 @@ import {
   type WorkoutSet,
 } from "@/lib/workout";
 
-const s = (muscle: WorkoutSet["muscle"], weight: number, reps: number, d: Date): WorkoutSet => ({
+const s = (muscle: WorkoutSet["muscle"], weight: number, setCount: number, d: Date): WorkoutSet => ({
   muscle,
   weight,
-  reps,
+  setCount,
   performed_at: d.toISOString(),
 });
 
@@ -41,24 +41,24 @@ describe("muscle names", () => {
 });
 
 describe("personal bests", () => {
-  it("tracks heaviest weight (more reps break ties), best volume and set count", () => {
+  it("tracks heaviest weight (first time reached) and total sets", () => {
     const sets = [
-      s("chest", 40, 10, new Date(2026, 0, 1)),
-      s("chest", 40, 12, new Date(2026, 0, 2)),
-      s("chest", 30, 20, new Date(2026, 0, 3)),
+      s("chest", 40, 3, new Date(2026, 0, 1)),
+      s("chest", 40, 4, new Date(2026, 0, 2)),
+      s("chest", 30, 2, new Date(2026, 0, 3)),
     ];
-    expect(personalBests(sets).chest).toMatchObject({ weight: 40, bestVolume: 40, totalSets: 3 });
+    expect(personalBests(sets).chest).toEqual({ weight: 40, weightDate: new Date(2026, 0, 1).toISOString(), totalSets: 9 });
   });
 });
 
-describe("weight and volume trend", () => {
+describe("weight trend", () => {
   const sets = [
     s("legs", 100, 5, new Date(2026, 0, 2, 9)),
     s("legs", 120, 3, new Date(2026, 0, 2, 10)),
     s("back", 50, 10, new Date(2026, 0, 1, 9)),
   ];
-  it("gives one point per day with heaviest weight and total volume, oldest first", () => {
-    expect(dailyTrend(sets, "legs")).toEqual([{ day: "2026-01-02", maxWeight: 120, volume: 220, sets: 2 }]);
+  it("gives one point per day with heaviest weight and sets done, oldest first", () => {
+    expect(dailyTrend(sets, "legs")).toEqual([{ day: "2026-01-02", maxWeight: 120, sets: 8 }]);
     expect(dailyTrend(sets, "all").map((p) => p.day)).toEqual(["2026-01-01", "2026-01-02"]);
   });
 });
@@ -79,8 +79,8 @@ describe("summary", () => {
     s("biceps", 25, 8, new Date(2026, 0, 12, 9)),
     s("biceps", 25, 8, new Date(2026, 0, 12, 10)),
   ];
-  it("totals sets, reps, volume and training days", () => {
-    expect(summarize(sets, now)).toMatchObject({ totalSets: 3, totalVolume: 70, workoutDays: 2, thisWeekSets: 3 });
+  it("totals sets and training days, with no volume", () => {
+    expect(summarize(sets, now)).toEqual({ totalSets: 26, workoutDays: 2, currentStreak: 2, thisWeekSets: 26 });
   });
   it("keeps the streak alive when today hasn't been trained yet", () => {
     expect(summarize(sets, now).currentStreak).toBe(2);
@@ -91,9 +91,9 @@ describe("summary", () => {
 });
 
 describe("consistency grid", () => {
-  it("shows 12 weeks of 7 days, with the heaviest day at the top level", () => {
+  it("shows 12 weeks of 7 days, shaded by how many sets were done", () => {
     const now = new Date(2026, 0, 14, 12);
-    const grid = activityGrid([s("legs", 100, 10, new Date(2026, 0, 13, 9)), s("abs", 10, 10, new Date(2026, 0, 12, 9))], 12, now);
+    const grid = activityGrid([s("legs", 100, 10, new Date(2026, 0, 13, 9)), s("abs", 10, 1, new Date(2026, 0, 12, 9))], 12, now);
     expect(grid).toHaveLength(12);
     expect(grid.every((c) => c.length === 7)).toBe(true);
     const cells = grid.flat();

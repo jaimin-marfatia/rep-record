@@ -72,12 +72,12 @@ describe.skipIf(!enabled)("backend (live)", () => {
   });
 
   it("logs, reads and deletes your own sets", async () => {
-    const { data: row, error } = await a.c.from("workout_sets").insert({ muscle: "chest", weight: 45, reps: 10 }).select("id,muscle,weight,reps").single();
+    const { data: row, error } = await a.c.from("workout_sets").insert({ muscle: "chest", weight: 45, set_count: 3 }).select("id,muscle,weight,set_count").single();
     expect(error).toBeNull();
-    expect(row).toMatchObject({ muscle: "chest", weight: 45, reps: 10 });
+    expect(row).toMatchObject({ muscle: "chest", weight: 45, set_count: 3 });
     const { data: mine } = await a.c.from("workout_sets").select("id");
     expect(mine?.map((r) => r.id)).toContain(row!.id);
-    await a.c.from("workout_sets").insert({ muscle: "legs", weight: 135, reps: 5 });
+    await a.c.from("workout_sets").insert({ muscle: "legs", weight: 135, set_count: 5 });
     const { error: delErr } = await a.c.from("workout_sets").delete().eq("id", row!.id);
     expect(delErr).toBeNull();
     const { data: after } = await a.c.from("workout_sets").select("id");
@@ -92,7 +92,7 @@ describe.skipIf(!enabled)("backend (live)", () => {
   });
 
   it("does not let another account log sets on your behalf or edit your profile", async () => {
-    const { error } = await b.c.from("workout_sets").insert({ muscle: "abs", weight: 10, reps: 10, user_id: a.id });
+    const { error } = await b.c.from("workout_sets").insert({ muscle: "abs", weight: 10, set_count: 2, user_id: a.id });
     expect(error).not.toBeNull();
     await b.c.from("profiles").update({ share_enabled: true }).eq("id", a.id);
     const { data } = await a.c.from("profiles").select("share_enabled").eq("id", a.id).single();
@@ -124,7 +124,7 @@ describe.skipIf(!enabled)("backend (live)", () => {
     expect(prof?.[0]?.first_name).toBe("Alice");
     expect(Object.keys(prof?.[0] ?? {})).not.toContain("last_name");
     const { data: sets } = await anon.rpc("get_shared_sets", { _token: me!.share_token });
-    expect(sets?.map((s) => [s.muscle, Number(s.weight), s.reps])).toEqual([["legs", 135, 5]]);
+    expect(sets?.map((s) => [s.muscle, Number(s.weight), s.set_count])).toEqual([["legs", 135, 5]]);
 
     await a.c.from("profiles").update({ share_token: `new${suffix}token1` }).eq("id", a.id);
     const { data: old } = await anon.rpc("get_shared_profile", { _token: me!.share_token });
