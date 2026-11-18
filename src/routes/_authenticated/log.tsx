@@ -242,7 +242,7 @@ function LogPage() {
             type="button"
             onClick={onSave}
             disabled={!canSave}
-            className="mt-6 flex h-16 w-full items-center justify-center gap-2 rounded-2xl bg-primary font-display text-2xl font-black uppercase tracking-wide text-primary-foreground shadow-glow transition-transform active:scale-[0.98] disabled:opacity-40 disabled:shadow-none"
+            className="mt-6 flex h-16 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary font-display text-2xl font-black uppercase tracking-wide text-primary-foreground shadow-glow transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             {addSet.isPending ? <Loader2 className="h-6 w-6 animate-spin" /> : <Check className="h-6 w-6" />}
             Save

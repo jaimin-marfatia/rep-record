@@ -135,6 +135,18 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Every clickable control shows the hand cursor, not just the shared Button. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  [role="menuitem"]:not([data-disabled]),
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @utility shadow-glow {
