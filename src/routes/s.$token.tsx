@@ -1,5 +1,5 @@
-import { ClientOnly, createFileRoute, Link } from "@tanstack/react-router";
-import { Lock } from "lucide-react";
+import { ClientOnly, createFileRoute, Link, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
+import { Lock, RefreshCw } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { ProgressDashboard } from "@/components/progress-dashboard";
 import { SummaryCard } from "@/components/summary-card";
@@ -36,23 +36,49 @@ export const Route = createFileRoute("/s/$token")({
     };
   },
   component: SharedPage,
+  errorComponent: SharedError,
+  notFoundComponent: PrivateLog,
 });
+
+function SharedError({ error, reset }: ErrorComponentProps) {
+  console.error(error);
+  const router = useRouter();
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <RefreshCw className="h-10 w-10 text-muted-foreground" />
+      <h1 className="font-display text-4xl font-black uppercase">Couldn't load this log</h1>
+      <p className="max-w-sm text-muted-foreground">The connection dropped for a moment. Try again — it usually works on the second go.</p>
+      <button
+        type="button"
+        onClick={() => {
+          void router.invalidate();
+          reset();
+        }}
+        className="rounded-full bg-primary px-5 py-2.5 font-bold text-primary-foreground"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
+function PrivateLog() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <Lock className="h-10 w-10 text-muted-foreground" />
+      <h1 className="font-display text-4xl font-black uppercase">This log is private</h1>
+      <p className="max-w-sm text-muted-foreground">The owner turned sharing off, or the link has changed.</p>
+      <Link to="/" className="rounded-full bg-primary px-5 py-2.5 font-bold text-primary-foreground">
+        Start your own log
+      </Link>
+    </div>
+  );
+}
 
 function SharedPage() {
   const data = Route.useLoaderData();
 
-  if (!data) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-        <Lock className="h-10 w-10 text-muted-foreground" />
-        <h1 className="font-display text-4xl font-black uppercase">This log is private</h1>
-        <p className="max-w-sm text-muted-foreground">The owner turned sharing off, or the link has changed.</p>
-        <Link to="/" className="rounded-full bg-primary px-5 py-2.5 font-bold text-primary-foreground">
-          Start your own log
-        </Link>
-      </div>
-    );
-  }
+  if (!data) return <PrivateLog />;
 
   const name = data.profile.first_name?.trim() || "A lifter";
 

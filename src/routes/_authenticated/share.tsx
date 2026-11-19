@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Copy, ExternalLink, Eye, Lock, RefreshCw, Share2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { SummaryCard } from "@/components/summary-card";
 import { Switch } from "@/components/ui/switch";
-import { newShareToken, shareDisplayName, shareUrl } from "@/lib/share";
+import { newShareToken, publicShareOrigin, shareDisplayName, shareUrl } from "@/lib/share";
 import { profileQueryOptions, setsQueryOptions, useUpdateProfile } from "@/lib/workout-queries";
 
 export const Route = createFileRoute("/_authenticated/share")({
@@ -32,7 +32,7 @@ function SharePage() {
   const { data: profile } = useSuspenseQuery(profileQueryOptions);
   const update = useUpdateProfile();
   const [origin, setOrigin] = useState("");
-  useEffect(() => setOrigin(window.location.origin), []);
+  useEffect(() => setOrigin(publicShareOrigin(window.location.origin)), []);
 
   const url = shareUrl(origin, profile.share_token);
   const displayName = shareDisplayName(profile.first_name);
@@ -105,14 +105,14 @@ function SharePage() {
                   <button type="button" onClick={() => void nativeShare()} className="flex items-center gap-1.5 rounded-full bg-secondary px-4 py-2 text-sm font-semibold hover:bg-accent">
                     <Share2 className="h-4 w-4" /> Share…
                   </button>
-                  <Link
-                    to="/s/$token"
-                    params={{ token: profile.share_token }}
+                  <a
+                    href={url}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-1.5 rounded-full bg-secondary px-4 py-2 text-sm font-semibold hover:bg-accent"
                   >
                     <ExternalLink className="h-4 w-4" /> Open public view
-                  </Link>
+                  </a>
                   <button
                     type="button"
                     disabled={update.isPending}

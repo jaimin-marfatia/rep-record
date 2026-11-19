@@ -27,18 +27,30 @@ export const getSharedWorkout = createServerFn({ method: "GET" })
       },
     });
 
-    const { data: prof, error } = await client.rpc("get_shared_profile", { _token: data.token });
-    if (error) throw new Error("Could not load this shared log");
+    // One quiet retry: a dropped request shouldn't break a link someone was sent.
+    async function once<T>(run: () => PromiseLike<{ data: T; error: unknown }>) {
+      const first = await run();
+      return first.error ? await run() : first;
+    }
+
+    const { data: prof, error } = await once(() => client.rpc("get_shared_profile", { _token: data.token }));
+    if (error) {
+      console.error("get_shared_profile failed", error);
+      throw new Error("Could not load this shared log");
+    }
     const profile = prof?.[0];
     if (!profile) return null;
 
     const sets: WorkoutSet[] = [];
     const PAGE = 1000;
     for (let from = 0; ; from += PAGE) {
-      const { data: rows, error: setErr } = await client
-        .rpc("get_shared_sets", { _token: data.token })
-        .range(from, from + PAGE - 1);
-      if (setErr) throw new Error("Could not load this shared log");
+      const { data: rows, error: setErr } = await once(() =>
+        client.rpc("get_shared_sets", { _token: data.token }).range(from, from + PAGE - 1),
+      );
+      if (setErr) {
+        console.error("get_shared_sets failed", setErr);
+        throw new Error("Could not load this shared log");
+      }
       for (const r of rows ?? []) {
         if (isMuscle(r.muscle)) {
           sets.push({ muscle: r.muscle, weight: Number(r.weight), setCount: r.set_count, performed_at: r.performed_at });

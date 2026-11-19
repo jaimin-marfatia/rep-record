@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isShareToken, newShareToken, shareDisplayName, shareUrl } from "@/lib/share";
+import { isShareToken, newShareToken, PUBLISHED_ORIGIN, publicShareOrigin, shareDisplayName, shareUrl } from "@/lib/share";
 
 describe("share links", () => {
   it("accepts only 8–64 letters and numbers as a link token", () => {
@@ -27,5 +27,18 @@ describe("share links", () => {
     expect(shareDisplayName(" Jaimin ")).toBe("Jaimin");
     expect(shareDisplayName("")).toBe("My training");
     expect(shareDisplayName(null)).toBe("My training");
+  });
+});
+
+describe("public link address", () => {
+  it("uses the live site when the link is made from the preview", () => {
+    expect(publicShareOrigin("https://id-preview--c446a5c2-3d18-4c39-89e7-c214f604ea5a.lovable.app")).toBe(PUBLISHED_ORIGIN);
+    expect(publicShareOrigin("https://c446a5c2-3d18-4c39-89e7-c214f604ea5a.lovableproject.com")).toBe(PUBLISHED_ORIGIN);
+    expect(publicShareOrigin("http://localhost:8080")).toBe(PUBLISHED_ORIGIN);
+  });
+
+  it("keeps the current address on the live site or a custom domain", () => {
+    expect(publicShareOrigin("https://muscle-milestone-log.lovable.app")).toBe("https://muscle-milestone-log.lovable.app");
+    expect(publicShareOrigin("https://ironlog.example.com")).toBe("https://ironlog.example.com");
   });
 });
