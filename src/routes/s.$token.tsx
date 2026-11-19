@@ -7,7 +7,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getSharedWorkout } from "@/lib/share.functions";
 
 export const Route = createFileRoute("/s/$token")({
-  loader: ({ params }) => getSharedWorkout({ data: { token: params.token } }),
+  // One retry after a short pause: a request dropped mid-flight shouldn't show an error.
+  loader: async ({ params }) => {
+    const load = () => getSharedWorkout({ data: { token: params.token } });
+    try {
+      return await load();
+    } catch {
+      await new Promise((r) => setTimeout(r, 800));
+      return await load();
+    }
+  },
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
